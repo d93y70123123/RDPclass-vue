@@ -48,8 +48,12 @@
     methods:{
       connect(){
         this.axios
-          .get("http://120.114.140.44/config/getip.php",{ params: { username: this.Username } })
+          .get("http://120.114.141.1/config/getpc.php",{params:{ username: 'kai' }})
           .then(res=>{
+            localStorage.setItem('seat', res.data.[0]);
+            localStorage.setItem('seatIP', res.data.[1]);
+            localStorage.setItem('usestatus', res.data.[2]);
+            console.log(res);
             this.$router.push('/RDPclass/Connect');
             // console.log(res);
             // if( res.data.[0] == true){
@@ -64,6 +68,7 @@
       }
     },
     mounted: function(){
+      this.Username = localStorage.getItem('Username');
     }
   }
 </script>

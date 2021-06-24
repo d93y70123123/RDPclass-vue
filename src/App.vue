@@ -1,6 +1,6 @@
 <template>
-  <v-app id="rdpclass">
-      <router-view/>
+  <v-app>
+    <router-view/>
   </v-app>
 </template>
 
