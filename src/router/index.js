@@ -45,6 +45,9 @@ router.beforeEach((to, from, next) => {
     if( to.path == '/' ) {
       next('/RDPclass');
     }
+    // if( to.path == '/RDPclass/*' ) {
+    //   next('/RDPclass/Show');
+    // }
   } else {
     next()
     next('/');

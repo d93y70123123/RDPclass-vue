@@ -2,15 +2,14 @@
   <v-container class="py-8 px-6" fluid>
     <v-row>
       <v-col justify="center" align="center">
+      <!--這邊要顯示開機狀態-->
       {{Use_status}}
-      {{Host_status}}
-      {{VM_status}}
       </v-col>
     </v-row>
     <v-row>
       <v-col justify="center" align="center">
         <v-btn v-if="isActive" color="pink" dark top @click="download">
-          按此下載(推薦使用此方式)
+          按此下載
           <v-icon>
             mdi-download
           </v-icon>
@@ -46,50 +45,76 @@
       isActive: '',
       connect_info: '120.0.0.0:8989',
       Open_machine: '/RDPclass/Open_machine',
-      Host_status: '',
-      VM_status: '',
       Use_status: '',
       seat: '',
       seatIP: '',
       usestatus: '',
+      Username: '',
+      serip: '',
+      arr: [],
+      openstatus: '',
     }),
     methods:{
       download(){
-        let a = document.createElement('a');
-        a.href = '/rdp.exe';
-        a.download = '測試檔案.exe';
-        a.click();
+        let link  = document.createElement('a');
+        link.style.display = "none";
+        link.href = this.serip + "/rdpclass/rdppkg/" + this.Username + ".exe";
+        link.setAttribute("download", this.Username);
+        link.download = this.Username + '.exe';
+        link.click();
+
+        this.Host_status = this.serip + "/rdpclass/rdppkg/" + this.Username + ".exe";
       },
       disconnect(){
-        // let a = document.createElement('a');
-        // a.href = '/rdp.exe';
-        // a.download = '測試檔案.exe';
-        // a.click();
+        this.axios
+          .get(this.serip + "/config/disconnect.php",{params:{ username: this.Username }})
+          .then(res=>{
+            this.$router.push('/RDPclass/Open_machine');
+          })
+          .catch(error => {
+            console.log(error)
+            this.errored = true
+          })
+          .finally(() => this.loading = false)
         this.$router.push('/RDPclass/Open_machine');
+      },
+      check_openstatus(){
+        this.axios
+          .get(this.serip + "/config/get_preopen.php",{params:{ username: this.Username }})
+          .then(res=>{
+            console.log(res.data);
+            if(res.data[3] == 1){
+              this.Use_status = '可以使用了';
+              clearInterval(this.openstatus);
+            }else if(res.data[3] == 2){
+              this.Use_status = '目前主機正在開機中';
+            }else if(res.data[3] == 3){
+              this.Use_status = '目前虛擬機正在開機中';
+            }else if(res.data[3] == 5){
+              this.Use_status = '目前沒有機器可用';
+            }else{
+              console.log("null");
+              clearInterval(this.openstatus);
+            }
+          })
+          .catch(error => {
+            console.log(error)
+            this.errored = true
+          })
+          .finally(() => this.loading = false)
       },
     },
     mounted: function(){
+      this.Username = localStorage.getItem('Username');
       this.seat=localStorage.getItem('seat');
       this.seatIP=localStorage.getItem('seatIP');
       this.usestatus=localStorage.getItem('usestatus');
-      if(this.usestatus == 1){
-        this.Use_status = '有使用過的紀錄';
-      }else if(this.usestatus == 2){
-        this.Use_status = '無使用過的紀錄，已幫你尋找新的電腦，請稍等';
-      }else if(this.usestatus == 3){
-        this.Use_status = '有使用過的紀錄，但目前該電腦有人使用，已幫你尋找新的電腦，請稍等';
-      }
-      if(true){
-        this.isActive = true;
-        this.Host_status = 'host';
-        this.VM_status = 'vm';
-      }
-      if(this.Host_status){
-        this.Host_status ='host open';
-      }
-      if(this.VM_status == 1){
-        this.Host_status = 'vm open';
-      }
+
+      this.serip = window.location.protocol + "//" + window.location.host;
+      this.arr = this.serip.split(":");
+      this.serip = this.arr[0] + ":" + this.arr[1];
+
+      this.openstatus=setInterval(this.check_openstatus, 5000);
     }
   }
 </script>

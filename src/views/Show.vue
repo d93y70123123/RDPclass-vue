@@ -5,8 +5,8 @@
         IDserver
       </div>
       <v-tabs centered class="ml-n9">
-        <v-tab v-for="link in links" :key="link">
-          {{ link }}
+        <v-tab v-for="[text, link] in links" :key="text" :to="link" link>
+          {{ text }}
         </v-tab>
       </v-tabs>
       <v-btn v-if="isActive" elevation="2" medium @click="logout">
@@ -85,8 +85,8 @@
       if( this.Auth == 1001){
         this.Auth = '學生';
         this.links= [
-          '開啟機器',
-          '修改資料',
+          ['開啟機器','/RDPclass/Open_machine'],
+          ['修改資料','/RDPclass/Open_machine'],
           //'設定連線資訊',
         ];
       }else if( this.Auth == 1002){
@@ -103,9 +103,9 @@
         ];
       }
       this.axios
-        .get("http://120.114.140.44/config/checkconnect.php")
+        .get("http://120.114.141.1/config/checkconnect.php")
         .then(res=>{
-          console.log(res.data);
+          // console.log(res.data);
           if( res.data ){
             this.number = res.data;
           }else{

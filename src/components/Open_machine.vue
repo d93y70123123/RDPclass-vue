@@ -6,6 +6,16 @@
       </v-col>
     </v-row>
     <v-row>
+      <v-col v-if="isActive" justify="center" align="center">
+        {{used}}
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col v-if="isActive" justify="center" align="center">
+        {{pre_open}}
+      </v-col>
+    </v-row>
+    <v-row>
       <v-col justify="center" align="center">
         <v-list-item>
           <v-list-item-content>
@@ -39,21 +49,25 @@
 <script>
   export default {
     data: () => ({
-      isActive: 'true',
+      isActive: 'false',
       Username: '',
       Auth:'',
       link: '/RDPclass/Show',
       links: [],
+      pre_open: '',
+      serip: '',
+      arr: [],
+      used: '',
     }),
     methods:{
       connect(){
         this.axios
-          .get("http://120.114.141.1/config/getpc.php",{params:{ username: 'kai' }})
+          .get(this.serip +"/config/getrdp.php",{params:{ username: this.Username }})
           .then(res=>{
             localStorage.setItem('seat', res.data.[0]);
             localStorage.setItem('seatIP', res.data.[1]);
             localStorage.setItem('usestatus', res.data.[2]);
-            console.log(res);
+            // console.log(res);
             this.$router.push('/RDPclass/Connect');
             // console.log(res);
             // if( res.data.[0] == true){
@@ -69,6 +83,34 @@
     },
     mounted: function(){
       this.Username = localStorage.getItem('Username');
+      this.serip = window.location.protocol + "//" + window.location.host;
+
+      this.arr = this.serip.split(":");
+      this.serip = this.arr[0] + ":" + this.arr[1];
+
+      this.axios
+      .get(this.serip + "/config/get_preopen.php",{params:{ username: this.Username }})
+        .then(res=>{
+          // console.log(res.data);
+          if( res.data[0] == 1 ){
+            this.pre_open = "目前有預備機 "+res.data+" 台";
+            this.isActive = true;
+          }else{
+            this.pre_open = "目前沒有有預備機，需要等待較長時間";
+          }
+          if( res.data[1] && res.data[2]  ){
+            this.used = "有使用過的紀錄，上次連線的電腦是：" + res.data[1] + "電腦的IP是：" + res.data[2];
+            this.isActive = true;
+          }else{
+            console.log(res.data[1] + res.data[2]);
+            this.used = "沒有使用過的紀錄";
+          }
+        })
+        .catch(error => {
+          console.log(error)
+          this.errored = true
+        })
+        .finally(() => this.loading = false)
     }
   }
 </script>
